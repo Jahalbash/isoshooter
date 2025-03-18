@@ -13,6 +13,8 @@ typedef struct {
 sprite racket;//ракетка игрока
 sprite enemy;//ракетка противника
 sprite ball;//шарик
+sprite wall;//стена
+sprite hero;
 
 struct {
     int score, balls;//количество набранных очков и оставшихся "жизней"
@@ -28,6 +30,20 @@ struct {
 HBITMAP hBack;// хэндл для фонового изображения
 
 //cекция кода
+int walls[20][10] = {
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,0,0,0,1,0,0,0,0,1,1,0,0,0,1,0,0,0,0,1,
+    1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+    1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,
+    1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,0,0,1,1,1,
+    1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,
+    1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,
+    1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+    1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+
+}; 
+
 
 void InitGame()
 {
@@ -38,6 +54,7 @@ void InitGame()
     racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket_enemy.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "back.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    wall.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     //------------------------------------------------------
 
     racket.width = 300;
@@ -45,6 +62,12 @@ void InitGame()
     racket.speed = 30;//скорость перемещения ракетки
     racket.x = window.width / 2.;//ракетка посередине окна
     racket.y = window.height - racket.height;//чуть выше низа экрана - на высоту ракетки
+    
+    wall.width = 50;
+    wall.height = 50;
+    wall.speed = 0;
+    wall.x = window.width;
+    wall.y = window.height;
 
     enemy.x = racket.x;//х координату оппонета ставим в ту же точку что и игрока
 
@@ -55,8 +78,14 @@ void InitGame()
     ball.x = racket.x;//x координата шарика - на середие ракетки
     ball.y = racket.y - ball.rad;//шарик лежит сверху ракетки
 
+    hero.speed = 11;
+    hero.rad = 20;
+    hero.x = window.width/2.;
+    hero.y = window.height/2.;
+
     game.score = 0;
     game.balls = 9;
+
 
    
 }
@@ -65,6 +94,8 @@ void ProcessSound(const char* name)//проигрывание аудиофайла в формате .wav, фай
 {
     PlaySound(TEXT(name), NULL, SND_FILENAME | SND_ASYNC);//переменная name содежрит имя файла. флаг ASYNC позволяет проигрывать звук паралельно с исполнением программы
 }
+
+
 
 void ShowScore()
 {
@@ -125,6 +156,19 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
     DeleteDC(hMemDC); // Удаляем контекст памяти
 }
 
+void ShowWalls() 
+{
+    for (int i = 0;i < 20;i++) 
+    {
+        for (int j = 0;j < 10;j++) 
+        {
+            if (walls[i][j] == 1) {
+                ShowBitmap(window.context, wall.width*i, wall.height*j, wall.width, wall.height, wall.hBitmap);
+            }
+        }
+    }
+}
+
 void ShowRacketAndBall()
 {
     ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);//задний фон
@@ -141,7 +185,10 @@ void ShowRacketAndBall()
 
     ShowBitmap(window.context, enemy.x - racket.width / 2, 0, racket.width, racket.height, enemy.hBitmap);//ракетка оппонента
     ShowBitmap(window.context, ball.x - ball.rad, ball.y - ball.rad, 2 * ball.rad, 2 * ball.rad, ball.hBitmap, true);// шарик
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap,true);
 }
+
+
 
 void LimitRacket()
 {
@@ -263,6 +310,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     while (!GetAsyncKeyState(VK_ESCAPE))
     {
         ShowRacketAndBall();//рисуем фон, ракетку и шарик
+        ShowWalls();
         ShowScore();//рисуем очик и жизни
         BitBlt(window.device_context, 0, 0, window.width, window.height, window.context, 0, 0, SRCCOPY);//копируем буфер в окно
         Sleep(16);//ждем 16 милисекунд (1/количество кадров в секунду)
