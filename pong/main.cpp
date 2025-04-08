@@ -28,8 +28,11 @@ struct {
 
 HBITMAP hBack;// хэндл для фонового изображения
 
+const int wWidth = 20;
+const int wHeight = 10;
+
 //cекция кода
-int walls[20][10] = {
+int walls[wWidth][wHeight] = {
     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
     1,0,0,0,1,0,0,0,0,1,1,0,0,0,1,0,0,0,0,1,
     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
@@ -61,8 +64,8 @@ void InitGame()
     racket.x = window.width / 2.;//ракетка посередине окна
     racket.y = window.height - racket.height;//чуть выше низа экрана - на высоту ракетки*/
     
-    wall.width = 50;
-    wall.height = 50;
+    wall.width = window.width/wWidth;
+    wall.height = window.height / wHeight;
     wall.speed = 0;
     wall.x = window.width;
     wall.y = window.height;
@@ -116,10 +119,47 @@ void ShowScore()
 
 void ProcessInput()
 {
-    
+    int upperHeroPoint = hero.y + hero.rad;
+    int bottomHeroPoint = hero.y - hero.rad;
+    int rightHeroPoint = hero.x + hero.rad;
+    int leftHeroPoint = hero.x - hero.rad;
 
-    if (GetAsyncKeyState(VK_DOWN)) hero.y += hero.speed;
-    if (GetAsyncKeyState(VK_UP)) hero.y -= hero.speed;
+    if (GetAsyncKeyState(VK_DOWN))
+    {
+        //CHECK POSSIBILITY
+        float d = hero.speed;
+            int bx = hero.x -hero.rad / wall.width;
+            int by = hero.y - hero.rad / wall.height;
+
+        if (walls[bx][by+1] == 0)
+        {
+            hero.y += d;
+        }
+        else
+        {
+            d = 0;
+        }
+
+       
+    }
+    if (GetAsyncKeyState(VK_UP)) 
+    {
+        //CHECK POSSIBILITY
+        float d = hero.speed;
+        int bx = hero.x / wall.width;
+        int by = hero.y / wall.height;
+
+        if (walls[bx][by + 1] == 0)
+        {
+            hero.y -= d;
+        }
+        else
+        {
+            d = 0;
+        }
+
+
+    }
     if (GetAsyncKeyState(VK_LEFT)) hero.x -= hero.speed;
     if (GetAsyncKeyState(VK_RIGHT)) hero.x += hero.speed;
 
@@ -160,9 +200,9 @@ void ShowBitmap(HDC hDC, int x, int y, int x1, int y1, HBITMAP hBitmapBall, bool
 
 void ShowWalls() 
 {
-    for (int i = 0;i < 20;i++) 
+    for (int i = 0;i < wWidth;i++)
     {
-        for (int j = 0;j < 10;j++) 
+        for (int j = 0;j < wHeight;j++)
         {
             if (walls[i][j] == 1) {
                 ShowBitmap(window.context, wall.width*i, wall.height*j, wall.width, wall.height, wall.hBitmap);
@@ -186,10 +226,7 @@ void LimitRacket()
     racket.x = min(racket.x, window.width - racket.width / 2.);//аналогично для правого угла
 }
 
-void CheckBarrier() 
-{
-    if ()
-}
+
 
 void CheckWalls()
 {
