@@ -11,10 +11,9 @@ typedef struct {
 } sprite;
 
 sprite racket;//ракетка игрока
-sprite enemy;//ракетка противника
 sprite ball;//шарик
 sprite wall;//стена
-sprite hero;
+sprite hero;//персонаж
 
 struct {
     int score, balls;//количество набранных очков и оставшихся "жизней"
@@ -50,18 +49,17 @@ void InitGame()
     //в этой секции загружаем спрайты с помощью функций gdi
     //пути относительные - файлы должны лежать рядом с .exe 
     //результат работы LoadImageA сохраняет в хэндлах битмапов, рисование спрайтов будет произовдиться с помощью этих хэндлов
-    ball.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     racket.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-    enemy.hBitmap = (HBITMAP)LoadImageA(NULL, "racket_enemy.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     hBack = (HBITMAP)LoadImageA(NULL, "back.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     wall.hBitmap = (HBITMAP)LoadImageA(NULL, "racket.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    hero.hBitmap = (HBITMAP)LoadImageA(NULL, "ball.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
     //------------------------------------------------------
 
-    racket.width = 300;
+    /*racket.width = 300;
     racket.height = 50;
     racket.speed = 30;//скорость перемещения ракетки
     racket.x = window.width / 2.;//ракетка посередине окна
-    racket.y = window.height - racket.height;//чуть выше низа экрана - на высоту ракетки
+    racket.y = window.height - racket.height;//чуть выше низа экрана - на высоту ракетки*/
     
     wall.width = 50;
     wall.height = 50;
@@ -69,14 +67,14 @@ void InitGame()
     wall.x = window.width;
     wall.y = window.height;
 
-    enemy.x = racket.x;//х координату оппонета ставим в ту же точку что и игрока
+  
 
-    ball.dy = (rand() % 65 + 35) / 100.;//формируем вектор полета шарика
+    /*ball.dy = (rand() % 65 + 35) / 100.;//формируем вектор полета шарика
     ball.dx = -(1 - ball.dy);//формируем вектор полета шарика
     ball.speed = 11;
     ball.rad = 20;
     ball.x = racket.x;//x координата шарика - на середие ракетки
-    ball.y = racket.y - ball.rad;//шарик лежит сверху ракетки
+    ball.y = racket.y - ball.rad;//шарик лежит сверху ракетки*/
 
     hero.speed = 11;
     hero.rad = 20;
@@ -118,8 +116,12 @@ void ShowScore()
 
 void ProcessInput()
 {
-    if (GetAsyncKeyState(VK_LEFT)) racket.x -= racket.speed;
-    if (GetAsyncKeyState(VK_RIGHT)) racket.x += racket.speed;
+    
+
+    if (GetAsyncKeyState(VK_DOWN)) hero.y += hero.speed;
+    if (GetAsyncKeyState(VK_UP)) hero.y -= hero.speed;
+    if (GetAsyncKeyState(VK_LEFT)) hero.x -= hero.speed;
+    if (GetAsyncKeyState(VK_RIGHT)) hero.x += hero.speed;
 
     if (!game.action && GetAsyncKeyState(VK_SPACE))
     {
@@ -172,20 +174,8 @@ void ShowWalls()
 void ShowRacketAndBall()
 {
     ShowBitmap(window.context, 0, 0, window.width, window.height, hBack);//задний фон
-    ShowBitmap(window.context, racket.x - racket.width / 2., racket.y, racket.width, racket.height, racket.hBitmap);// ракетка игрока
-
-    if (ball.dy < 0 && (enemy.x - racket.width / 4 > ball.x || ball.x > enemy.x + racket.width / 4))
-    {
-        //имитируем разумность оппонента. на самом деле, компьютер никогда не проигрывает, и мы не считаем попадает ли его ракетка по шарику
-        //вместо этого, мы всегда делаем отскок от потолка, а раектку противника двигаем - подставляем под шарик
-        //движение будет только если шарик летит вверх, и только если шарик по оси X выходит за пределы половины длины ракетки
-        //в этом случае, мы смешиваем координаты ракетки и шарика в пропорции 9 к 1
-        enemy.x = ball.x * .1 + enemy.x * .9;
-    }
-
-    ShowBitmap(window.context, enemy.x - racket.width / 2, 0, racket.width, racket.height, enemy.hBitmap);//ракетка оппонента
-    ShowBitmap(window.context, ball.x - ball.rad, ball.y - ball.rad, 2 * ball.rad, 2 * ball.rad, ball.hBitmap, true);// шарик
-    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap,true);
+    ShowBitmap(window.context, hero.x, hero.y, 2 * hero.rad, 2 * hero.rad, hero.hBitmap,true);//персонаж
+    
 }
 
 
@@ -194,6 +184,11 @@ void LimitRacket()
 {
     racket.x = max(racket.x, racket.width / 2.);//если коодината левого угла ракетки меньше нуля, присвоим ей ноль
     racket.x = min(racket.x, window.width - racket.width / 2.);//аналогично для правого угла
+}
+
+void CheckBarrier() 
+{
+    if ()
 }
 
 void CheckWalls()
